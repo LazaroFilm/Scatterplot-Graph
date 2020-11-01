@@ -1,56 +1,120 @@
-dataTest = [
-  [0, 0],
-  [10, 60],
-  [5, 30],
-  [52, 237],
-];
+// dataTest = [
+//   [0, 0],
+//   [10, 60],
+//   [5, 30],
+//   [52, 237],
+// ];
 
-const w = 600;
-const h = 300;
-const p = 50;
+const fetchDataSet = async () => {
+  const response = await fetch(
+    "https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json"
+  );
+  const data = await response.json();
+  drawGraph(JSON.stringify(data));
+};
+fetchDataSet();
 
-const svg = d3 //
-  .select("body")
-  .append("svg")
-  .attr("width", w)
-  .attr("height", h)
-  .attr("id", "graph");
+const drawGraph = async (data) => {
+  const dataSet = JSON.parse(data);
 
-const xScale = d3 //
-  .scaleLinear()
-  .domain([0, d3.max(dataTest, (d) => d[0])])
-  .range([p, w - p]);
+  const w = 600;
+  const h = 300;
+  const p = 50;
 
-const yScale = d3 //
-  .scaleLinear()
-  .domain([0, d3.max(dataTest, (d) => d[1])])
-  .range([h - p, p]);
+  const xParseYear = d3.timeParse("%Y");
 
-const xAxis = d3 //
-  .axisBottom(xScale.nice());
+  const yParseTime = d3.timeParse("%M:%S");
+  const yFormatMS = d3.timeFormat("%M:%S");
 
-const yAxis = d3 //
-  .axisLeft()
-  .scale(yScale.nice());
+  console.log(yFormatMS(yParseTime(dataSet[0].Time)));
+  console.log(yParseTime(dataSet[0].Time));
+  console.log(dataSet[0].Time);
+  const svg = d3 //
+    .select("body")
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h)
+    .attr("id", "graph");
 
-svg // Dots
-  .selectAll("circle")
-  .data(dataTest)
-  .enter()
-  .append("circle")
-  .attr("cx", (d) => xScale(d[0]))
-  .attr("cy", (d) => yScale(d[1]))
-  .attr("r", 5)
-  .attr("fill", "red");
+  const xScale = d3 //
+    .scaleTime()
+    .domain(d3.extent(dataSet, (d) => xParseYear(d.Year)))
+    .range([p, w - p]);
 
-svg // X axis
-  .append("g")
-  .attr("id", "x-axis")
-  .attr("transform", `translate(0, ${h - p})`)
-  .call(xAxis);
+  const yScale = d3 //
+    .scaleTime()
+    .domain(d3.extent(dataSet, (d) => yParseTime(d.Time)))
+    .range([h - p, p]);
 
-svg // Y axis
-  .append("g")
-  .attr("id", "y-axis")
-  .attr("transform", `translate( ${p}, 0)`)
-  .call(yAxis);
+  const xAxis = d3 //
+    .axisBottom(xScale.nice())
+    .tickFormat(d3.timeFormat("%Y"));
+
+  const yAxis = d3 //
+    .axisLeft()
+    .scale(yScale.nice())
+    .tickFormat(d3.timeFormat("%M:%S"));
+
+  svg // Dots
+    .selectAll("circle")
+    .data(dataSet)
+    .enter()
+    .append("circle")
+    .attr("cx", (d) => xScale(xParseYear(d.Year)))
+    .attr("cy", (d) => yScale(yParseTime(d.Time)))
+    .attr("r", 5)
+    .attr("fill", (d) => (d.Doping === "" ? "blue" : "red"))
+    .attr("class", "dot")
+    .attr("data-xvalue", (d) => xParseYear(d.Year))
+    .attr("data-yvalue", (d) => yParseTime(d.Time));
+
+  svg // X axis
+    .append("g")
+    .attr("id", "x-axis")
+    .attr("transform", `translate(0, ${h - p})`)
+    .call(xAxis);
+
+  svg // Y axis
+    .append("g")
+    .attr("id", "y-axis")
+    .attr("transform", `translate( ${p}, 0)`)
+    .call(yAxis);
+
+  const wLegend = 100;
+  const hLegend = 50;
+  const xLegend = w - p - wLegend;
+  const yLegend = h - p - hLegend;
+
+  svg // Legend box
+    .append("rect")
+    .attr("x", xLegend)
+    .attr("y", yLegend)
+    .attr("height", hLegend)
+    .attr("width", wLegend)
+    .attr("fill", "lightgray")
+    .attr("id", "legend")
+    .text("Hello");
+
+  svg // Legend Doped
+    .append("text")
+    .attr("x", xLegend + 18)
+    .attr("y", yLegend + 20)
+    .text("doped");
+  svg // Legend Not doped
+    .append("text")
+    .attr("x", xLegend + 18)
+    .attr("y", yLegend + 35)
+    .text("not doped");
+  svg // Legend red dot
+    .append("circle")
+    .attr("cx", xLegend + 8 + 3)
+    .attr("cy", yLegend + 20 - 4)
+    .attr("r", 5)
+    .attr("fill", "red");
+  svg // Legend blue dot
+    .append("circle")
+    .attr("cx", xLegend + 8 + 3)
+    .attr("cy", yLegend + 35 - 4)
+    .attr("r", 5)
+    .attr("fill", "blue");
+};
