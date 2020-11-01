@@ -1,10 +1,3 @@
-// dataTest = [
-//   [0, 0],
-//   [10, 60],
-//   [5, 30],
-//   [52, 237],
-// ];
-
 const fetchDataSet = async () => {
   const response = await fetch(
     "https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json"
@@ -26,9 +19,9 @@ const drawGraph = async (data) => {
   const yParseTime = d3.timeParse("%M:%S");
   const yFormatMS = d3.timeFormat("%M:%S");
 
-  console.log(yFormatMS(yParseTime(dataSet[0].Time)));
-  console.log(yParseTime(dataSet[0].Time));
-  console.log(dataSet[0].Time);
+  // console.log(yFormatMS(yParseTime(dataSet[0].Time)));
+  // console.log(yParseTime(dataSet[0].Time));
+  // console.log(dataSet[0].Time);
   const svg = d3 //
     .select("body")
     .append("svg")
@@ -66,7 +59,26 @@ const drawGraph = async (data) => {
     .attr("fill", (d) => (d.Doping === "" ? "blue" : "red"))
     .attr("class", "dot")
     .attr("data-xvalue", (d) => xParseYear(d.Year))
-    .attr("data-yvalue", (d) => yParseTime(d.Time));
+    .attr("data-yvalue", (d) => yParseTime(d.Time))
+    .on("mouseover", (d, i) => {
+      console.log(i.Name);
+
+      tooltip // display tooltip
+        .transition()
+        .duration(200)
+        .style("opacity", 0.9)
+        .attr("data-year", xParseYear(i.Year))
+        .text(
+          `Name: ${i.Name} - Time: ${i.Time} - Place: ${i.Place} - Year: ${i.Year}`
+        );
+    })
+    .on("mouseout", (d, i) => {
+      tooltip // hide tooltip
+        .transition()
+        .duration(200)
+        .style("opacity", 0)
+        .text("");
+    });
 
   svg // X axis
     .append("g")
@@ -80,10 +92,10 @@ const drawGraph = async (data) => {
     .attr("transform", `translate( ${p}, 0)`)
     .call(yAxis);
 
-  const wLegend = 100;
-  const hLegend = 50;
-  const xLegend = w - p - wLegend;
-  const yLegend = h - p - hLegend;
+  const wLegend = 95;
+  const hLegend = 45;
+  const xLegend = w - p - wLegend - 5;
+  const yLegend = h - p - hLegend - 5;
 
   svg // Legend box
     .append("rect")
@@ -117,4 +129,12 @@ const drawGraph = async (data) => {
     .attr("cy", yLegend + 35 - 4)
     .attr("r", 5)
     .attr("fill", "blue");
+
+  const tooltip = svg // ToolTip popup
+    .append("text")
+    .attr("x", 5)
+    .attr("y", h - 5)
+    .text("")
+    .style("opacity", 0)
+    .attr("id", "tooltip");
 };
