@@ -104,8 +104,7 @@ const drawGraph = async (data) => {
     .attr("height", hLegend)
     .attr("width", wLegend)
     .attr("fill", "lightgray")
-    .attr("id", "legend")
-    .text("Hello");
+    .attr("id", "legend");
 
   svg // Legend Doped
     .append("text")
